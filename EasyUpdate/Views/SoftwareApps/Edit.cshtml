@@ -1,0 +1,57 @@
+﻿@model EasyUpdate.ViewModels.SoftwareAppViewModel
+
+<h2>Edit Application</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="AppFolderPath"></label>
+        <div class="input-group">
+            <input asp-for="AppFolderPath" id="AppFolderPath" class="form-control" placeholder="\\server\apps\MyApp" />
+            <button type="button" class="btn btn-outline-secondary" onclick="openFolderBrowser('AppFolderPath')">Browse...</button>
+        </div>
+        <span asp-validation-for="AppFolderPath" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="DeployScriptPath"></label>
+        <div class="input-group">
+            <input asp-for="DeployScriptPath" id="DeployScriptPath" class="form-control" />
+            <button type="button" class="btn btn-outline-secondary"
+                    onclick="openFolderBrowser('DeployScriptPath', 'file', '.ps1,.bat')">
+                Browse...
+            </button>
+        </div>
+        <span asp-validation-for="DeployScriptPath" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="RollbackScriptPath"></label>
+        <div class="input-group">
+            <input asp-for="RollbackScriptPath" id="RollbackScriptPath" class="form-control" />
+            <button type="button" class="btn btn-outline-secondary"
+                    onclick="openFolderBrowser('RollbackScriptPath', 'file', '.ps1,.bat')">
+                Browse...
+            </button>
+        </div>
+        <span asp-validation-for="RollbackScriptPath" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="CurrentVersion"></label>
+        <input asp-for="CurrentVersion" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+<partial name="_FolderBrowserModal" />

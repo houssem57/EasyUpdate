@@ -1,0 +1,45 @@
+﻿@model IEnumerable<EasyUpdate.Data.Entities.ScheduledUpdate>
+
+<h2>Update History</h2>
+<a asp-action="Index" class="btn btn-secondary mb-3">← Back to Upcoming</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Application</th>
+            <th>Target Version</th>
+            <th>Scheduled Start</th>
+            <th>Status</th>
+            <th>Scheduled By</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var update in Model)
+        {
+            <tr>
+                <td>@update.SoftwareApp.Name</td>
+                <td>@update.TargetVersion</td>
+                <td>@update.ScheduledStart.ToString("g")</td>
+                <td>
+                    <span class="badge @GetStatusBadgeClass(update.Status)">@update.Status</span>
+                </td>
+                <td>@update.ScheduledByUser?.UserName</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@update.Id" class="btn btn-sm btn-secondary">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@functions {
+    string GetStatusBadgeClass(EasyUpdate.Data.Entities.UpdateStatus status) => status switch
+    {
+        EasyUpdate.Data.Entities.UpdateStatus.Completed => "bg-success",
+        EasyUpdate.Data.Entities.UpdateStatus.Failed => "bg-danger",
+        EasyUpdate.Data.Entities.UpdateStatus.RolledBack => "bg-warning text-dark",
+        EasyUpdate.Data.Entities.UpdateStatus.Cancelled => "bg-dark",
+        _ => "bg-secondary"
+    };
+}

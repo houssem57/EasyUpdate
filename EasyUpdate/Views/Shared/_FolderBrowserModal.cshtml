@@ -1,0 +1,128 @@
+﻿<div class="modal fade" id="folderBrowserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fb-title">Select a Folder</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <strong>Current path:</strong>
+                    <span id="fb-current-path" class="text-muted">Drives</span>
+                </div>
+                <div class="mb-2" id="fb-selected-row" style="display:none;">
+                    <strong>Selected file:</strong>
+                    <span id="fb-selected-file" class="text-success"></span>
+                </div>
+                <button type="button" id="fb-up-btn" class="btn btn-sm btn-outline-secondary mb-2" style="display:none;">
+                    ↑ Up one level
+                </button>
+                <ul id="fb-folder-list" class="list-group" style="max-height: 350px; overflow-y: auto;"></ul>
+                <div id="fb-error" class="text-danger mt-2" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="fb-select-btn" class="btn btn-primary">Select</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        let targetInputId = null;
+        let mode = 'folder';          // 'folder' or 'file'
+        let extensions = '';
+        let currentPath = '';
+        let selectedFile = '';
+
+        // openFolderBrowser('AppFolderPath')                      -> pick a folder
+        // openFolderBrowser('DeployScriptPath', 'file', '.ps1')   -> pick a file
+        window.openFolderBrowser = function (inputId, browseMode, exts) {
+            targetInputId = inputId;
+            mode = browseMode || 'folder';
+            extensions = exts || '';
+            selectedFile = '';
+
+            document.getElementById('fb-title').textContent =
+                mode === 'file' ? 'Select a File' : 'Select a Folder';
+            document.getElementById('fb-select-btn').textContent =
+                mode === 'file' ? 'Select This File' : 'Select This Folder';
+            document.getElementById('fb-selected-row').style.display = 'none';
+
+            loadFolder(document.getElementById(inputId).value || '');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('folderBrowserModal')).show();
+        };
+
+        function loadFolder(path) {
+            let url = '/FileBrowser/ListFolders?path=' + encodeURIComponent(path);
+            if (mode === 'file') {
+                url += '&includeFiles=true&extensions=' + encodeURIComponent(extensions);
+            }
+
+            fetch(url)
+                .then(res => {
+                    if (!res.ok) throw new Error('Could not read this folder.');
+                    return res.json();
+                })
+                .then(data => {
+                    document.getElementById('fb-error').style.display = 'none';
+                    currentPath = data.currentPath || '';
+                    selectedFile = '';
+                    document.getElementById('fb-selected-row').style.display = 'none';
+                    document.getElementById('fb-current-path').textContent = currentPath || 'Drives';
+
+                    const upBtn = document.getElementById('fb-up-btn');
+                    if (data.parentPath) {
+                        upBtn.style.display = 'inline-block';
+                        upBtn.onclick = () => loadFolder(data.parentPath);
+                    } else if (currentPath !== '') {
+                        upBtn.style.display = 'inline-block';
+                        upBtn.onclick = () => loadFolder('');
+                    } else {
+                        upBtn.style.display = 'none';
+                    }
+
+                    const list = document.getElementById('fb-folder-list');
+                    list.innerHTML = '';
+
+                    data.folders.forEach(f => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item list-group-item-action';
+                        li.style.cursor = 'pointer';
+                        li.textContent = '📁 ' + f.name;
+                        li.onclick = () => loadFolder(f.fullPath);
+                        list.appendChild(li);
+                    });
+
+                    (data.files || []).forEach(f => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item list-group-item-action';
+                        li.style.cursor = 'pointer';
+                        li.textContent = '📄 ' + f.name;
+                        li.onclick = () => {
+                            list.querySelectorAll('.active').forEach(x => x.classList.remove('active'));
+                            li.classList.add('active');
+                            selectedFile = f.fullPath;
+                            document.getElementById('fb-selected-file').textContent = f.name;
+                            document.getElementById('fb-selected-row').style.display = 'block';
+                        };
+                        list.appendChild(li);
+                    });
+                })
+                .catch(err => {
+                    const errDiv = document.getElementById('fb-error');
+                    errDiv.textContent = err.message;
+                    errDiv.style.display = 'block';
+                });
+        }
+
+        document.getElementById('fb-select-btn').addEventListener('click', function () {
+            const value = mode === 'file' ? selectedFile : currentPath;
+            if (targetInputId && value) {
+                document.getElementById(targetInputId).value = value;
+            }
+            bootstrap.Modal.getInstance(document.getElementById('folderBrowserModal')).hide();
+        });
+    })();
+</script>

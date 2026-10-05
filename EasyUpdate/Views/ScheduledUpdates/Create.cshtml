@@ -1,0 +1,44 @@
+﻿@model EasyUpdate.ViewModels.ScheduledUpdateViewModel
+
+<h2>Schedule New Update</h2>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group mb-3">
+        <label asp-for="SoftwareAppId"></label>
+        <select asp-for="SoftwareAppId" class="form-control">
+            <option value="">-- Select Application --</option>
+            @foreach (var app in Model.AvailableApps!)
+            {
+                <option value="@app.Id">@app.Name</option>
+            }
+        </select>
+        <span asp-validation-for="SoftwareAppId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="TargetVersion"></label>
+        <input asp-for="TargetVersion" class="form-control" placeholder="e.g. 1.2.0" />
+        <span asp-validation-for="TargetVersion" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="PackagePath"></label>
+        <div class="input-group">
+            <input asp-for="PackagePath" id="PackagePath" class="form-control" placeholder="\\server\packages\MyApp_1.2.0" />
+            <button type="button" class="btn btn-outline-secondary" onclick="openFolderBrowser('PackagePath')">Browse...</button>
+        </div>
+        <span asp-validation-for="PackagePath" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="ScheduledStart"></label>
+        <input asp-for="ScheduledStart" class="form-control" type="datetime-local" />
+        <span asp-validation-for="ScheduledStart" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Schedule Update</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+<partial name="_FolderBrowserModal" />
